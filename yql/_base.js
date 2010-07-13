@@ -7,7 +7,7 @@ dojo.require("dojo.io.script");
  */
 (function(d){
 
-    var URL = 'http:/' + '/query.yahooapis.com/v1/public/yql';
+    var URL = 'http://query.yahooapis.com/v1/public/yql';
 
     dojox.yql = function(query, ioArgs){
         // summary: An interface to Yahoo's YQL web service
@@ -37,19 +37,19 @@ dojo.require("dojo.io.script");
         //
         // example:
         //  |   dojox.yql("select geo.places where text = 'SFO'", {
-        //  |       load: function(data){ ... }
+        //  |       load: function(data){ console.dir(data); }
         //  |   });
         //
         // example:
         //  |   dojox.yql("select * from internet", {
-        //  |       error: function(e){ ... }
+        //  |       error: function(e){ handleIt(e); }
         //  |   }).addCallback(handleIt);
         //
         // example:
         //  |   dojox.yql("select * from internet", {
         //  |       timeout:5000,
-        //  |       error: function(e){},
-        //  |       load: function(e){}
+        //  |       error: function(e){ handleIt(e); },
+        //  |       load: handleIt
         //  |   });
         //
         //  example: 
@@ -58,25 +58,30 @@ dojo.require("dojo.io.script");
         var args = d.mixin({
             url: URL,
             callbackParamName: "callback",
-            format:"json",
-            q: query,
             content: {}
         }, ioArgs || {});
-        
-        args.content.diagnostics = args.diagnostics && args.diagnostics === "true" || args.diagnostics === true;
-        args.content.env = args.content.env || args.env || 'http:/' + '/datatables.org/alltables.env';
+
+        d.mixin(args.content, {
+            q: query, format:"json",
+            diagnostics: args.diagnostics && args.diagnostics === "true" || args.diagnostics === true,
+            env: args.content.env || args.env || 'http://datatables.org/alltables.env'
+        });
         
         // we need to make a new Deferred because we want to regulate the callbacks passed
         // in `ioArgs`. Attach those to this new deferred, which will be returned.
         var dfd = new d.Deferred();
+        
         args.load && dfd.addCallback(args.load);
         args.error && dfd.addErrback(args.error);
         args.handle && dfd.addBoth(args.handle);
         
         // kill old load/error function if any at all so we can fire err/callback based on data.error,
         // as json-p doesn't have traditional errors (though 404's etc will throw methinks?)
-        args.load = function(data){ dfd[(data.error ? "err" : "call") + "back"](data); }
-        args.error = function(e){ dfd.errback(e); }
+        args.load = function(data){
+            var it = data.error || data.query; 
+            dfd[(data.error ? "err" : "call") + "back"](it); 
+        };
+        args.error = function(e){ dfd.errback(e); };
         args.handle = null; // sokay, we bound an original before here
         
         d.io.script.get(args);
