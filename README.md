@@ -1,4 +1,4 @@
-= About
+# About
 
 This is a Dojo interface to Yahoo's [YQL][yql].  It's based on Dav Glass's
 [yui-yql][yui-yql], mostly rewritten around dojo.io.script
@@ -21,12 +21,12 @@ Or more traditionally as you would a Ajax request, or any other dojo.Deferred:
         .addErrback(function(error){ })
     ;
 
-== Note
+## Note
 
 If you are using this module, you must comply with Yahoo's [usage and
 attribution requirements][usage].
 
-== TODO:
+## TODO:
 
  *   Tests (fork/port is wholly untested)
  *   Documentation (inline docs added, though could be expanded)
